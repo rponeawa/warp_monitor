@@ -78,9 +78,11 @@ EOF
 
 setup_cron_job() {
     local cron_comment="# WARP_MONITOR_CRON"
-    local cron_job="0 * * * * ${SCRIPT_PATH} ${cron_comment}"
+    local cron_job="0 * * * * timeout 20m ${SCRIPT_PATH} ${cron_comment}"
+
     log_and_echo "------------------------------------------------------------------------"
     log_and_echo " 定时任务配置检查:"
+
     if crontab -l 2>/dev/null | grep -qF "$cron_comment"; then
         log_and_echo "   [INFO] 定时监控任务已存在, 跳过设置。"
         local existing_job=$(crontab -l | grep -F "$cron_comment")
@@ -96,10 +98,19 @@ setup_cron_job() {
             *) human_readable_schedule="按自定义计划 '${schedule}' 执行" ;;
         esac
         log_and_echo "   - 已有设定: $human_readable_schedule"
+        if ! echo "$existing_job" | grep -q "timeout"; then
+            log_and_echo "   [INFO] 检测到现有任务缺少超时设置, 正在更新..."
+            (crontab -l | grep -vF "$cron_comment"; echo "$cron_job") | crontab -
+            log_and_echo "   [SUCCESS] 成功为定时任务添加20分钟超时保护。"
+        fi
     else
         log_and_echo "   [INFO] 定时监控任务不存在, 正在添加..."
         (crontab -l 2>/dev/null; echo "$cron_job") | crontab -
-        if [ $? -eq 0 ]; then log_and_echo "   [SUCCESS] 成功添加定时任务, 脚本将每小时自动运行。"; else log_and_echo "   [ERROR] 添加定时任务失败。"; fi
+        if [ $? -eq 0 ]; then
+            log_and_echo "   [SUCCESS] 成功添加定时任务 (带20分钟超时保护), 脚本将每小时自动运行。"
+        else
+            log_and_echo "   [ERROR] 添加定时任务失败。"
+        fi
     fi
 }
 
@@ -160,7 +171,6 @@ main() {
     declare os_info kernel_info arch_info virt_info IPV4 IPV6
     declare expected_stack actual_stack conformity_status WORK_MODE CLIENT_STATUS WIREPROXY_STATUS
     declare RECONNECT_CMD needs_reconnect
-
     echo "--- $(date '+%Y-%m-%d %H:%M:%S') ---" >> "$LOG_FILE"
     log_and_echo "========================================================================"
     log_and_echo " WARP Status Report & Auto-Heal"
