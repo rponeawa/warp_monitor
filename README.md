@@ -29,13 +29,13 @@
 **方法一：使用 `wget` (推荐)**
 
 ```bash
-wget -qO - "https://raw.githubusercontent.com/Michaol/warp_monitor/main/warp_monitor.sh" | sudo bash
+wget -qO - "https://raw.githubusercontent.com/Michaol/warp_monitor/main/warp_monitor.sh" | sudo bash /root/warp_monitor.sh
 ```
 
 **方法二：使用 `curl`**
 
 ```bash
-curl -sSL "https://raw.githubusercontent.com/Michaol/warp_monitor/main/warp_monitor.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/Michaol/warp_monitor/main/warp_monitor.sh" | sudo bash /root/warp_monitor.sh
 ```
 
 ### 首次执行后
