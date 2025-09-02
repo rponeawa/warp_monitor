@@ -4,6 +4,7 @@ LOG_FILE="/var/log/warp_monitor.log"
 LOGROTATE_CONF="/etc/logrotate.d/warp_monitor"
 MAX_RETRIES=10
 SCRIPT_PATH=$(realpath "$0")
+LOCK_FILE="/var/run/warp_monitor.lock"
 
 if [ "$(id -u)" -ne 0 ]; then
    echo "错误: 此脚本必须以 root 权限运行才能管理 logrotate 和 crontab。"
@@ -78,10 +79,8 @@ EOF
 setup_cron_job() {
     local cron_comment="# WARP_MONITOR_CRON"
     local cron_job="0 * * * * ${SCRIPT_PATH} ${cron_comment}"
-
     log_and_echo "------------------------------------------------------------------------"
     log_and_echo " 定时任务配置检查:"
-
     if crontab -l 2>/dev/null | grep -qF "$cron_comment"; then
         log_and_echo "   [INFO] 定时监控任务已存在, 跳过设置。"
         local existing_job=$(crontab -l | grep -F "$cron_comment")
@@ -100,12 +99,7 @@ setup_cron_job() {
     else
         log_and_echo "   [INFO] 定时监控任务不存在, 正在添加..."
         (crontab -l 2>/dev/null; echo "$cron_job") | crontab -
-        if [ $? -eq 0 ]; then
-            log_and_echo "   [SUCCESS] 成功添加定时任务, 脚本将每小时自动运行。"
-            log_and_echo "   - 新增设定: $cron_job"
-        else
-            log_and_echo "   [ERROR] 添加定时任务失败。"
-        fi
+        if [ $? -eq 0 ]; then log_and_echo "   [SUCCESS] 成功添加定时任务, 脚本将每小时自动运行。"; else log_and_echo "   [ERROR] 添加定时任务失败。"; fi
     fi
 }
 
@@ -173,7 +167,6 @@ main() {
     setup_log_rotation
     setup_cron_job
     check_status
-
     log_and_echo "------------------------------------------------------------------------"
     log_and_echo " 系统信息:"
     log_and_echo "   当前操作系统: $os_info"; log_and_echo "   内核: $kernel_info"
@@ -194,7 +187,6 @@ main() {
     log_and_echo "   实际状态: $actual_stack"
     log_and_echo "   符合状态: $conformity_status"
     log_and_echo "========================================================================"
-
     if [[ $needs_reconnect -eq 1 && -n "$RECONNECT_CMD" ]]; then
         log_and_echo " 最终诊断: 连接异常或配置不符。启动自动重连程序..."
         for i in $(seq 1 $MAX_RETRIES); do
@@ -221,4 +213,7 @@ main() {
     log_and_echo ""
 }
 
-main
+(
+    flock -n 200 || { echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Another instance of warp_monitor is already running. Exiting." | tee -a "$LOG_FILE"; exit 1; }
+    main
+) 200>"$LOCK_FILE"
