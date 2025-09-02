@@ -18,7 +18,6 @@
 
   - 一台已通过 [fscarmen/warp-sh](https://github.com/fscarmen/warp-sh) 脚本成功安装 WARP 的 Linux 服务器。
   - `root` 用户权限（用于配置日志和定时任务，以及执行网络命令）。
-  - 已安装 `curl` 工具。
 
 ## 🚀 使用方法
 
