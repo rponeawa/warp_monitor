@@ -1,4 +1,4 @@
-# WARP 状态监控与自动修复脚本 (WARP Monitor & Auto-Heal)
+# WARP 状态监控与自动修复脚本
 
 这是一个为 Linux 服务器全自动监控由 [fscarmen/warp-sh](https://github.com/fscarmen/warp-sh) 脚本安装的 Cloudflare WARP 连接。它不仅能报告详细的连接状态，还能在检测到连接丢失或配置不符时，自动尝试修复。
 
