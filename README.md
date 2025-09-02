@@ -25,7 +25,7 @@
 
 ### 首次安装与执行
 
-您可以通过一行命令直接从 GitHub 下载并执行此脚本。脚本会自动完成所有初始配置。
+你可以通过一行命令直接从 GitHub 下载并执行此脚本。脚本会自动完成所有初始配置。
 
 **方法一：使用 `wget` (推荐)**
 
@@ -46,12 +46,12 @@ curl -sSL -o /root/warp_monitor.sh "https://raw.githubusercontent.com/Michaol/wa
 1.  在 `/etc/logrotate.d/` 目录下创建 `warp_monitor` 配置文件。
 2.  在 `root` 用户的 `crontab` 中添加一条每小时执行一次的定时任务。
 
-您可以通过以下命令来验证：
+你可以通过以下命令来验证：
 
   - **检查定时任务**: `sudo crontab -l`
   - **查看日志文件**: `tail -f /var/log/warp_monitor.log`
 
-之后，脚本将根据定时任务在后台静默运行，守护您的 WARP 连接。
+之后，脚本将根据定时任务在后台静默运行，守护你的 WARP 连接。
 
 ## 📊 输出示例
 
