@@ -50,7 +50,7 @@ curl -sSL -o /root/warp_monitor.sh "https://raw.githubusercontent.com/Michaol/wa
 
   - **检查定时任务**: `sudo crontab -l`
   - **修改定时任务**：`sudo crontab -e` 修改你需要时执行时间 `0 * * * * /root/warp_monitor.sh # WARP_MONITOR_CRON`，脚本不会修改你的自定义执行时间
-  - **查看日志文件**: `tail -f /var/log/warp_monitor.log`
+  - **查看日志文件**: `less /var/log/warp_monitor.log` 看完`q`退出
 
 之后，脚本将根据定时任务在后台静默运行，守护你的 WARP 连接。
 
