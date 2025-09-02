@@ -214,6 +214,6 @@ main() {
 }
 
 (
-    flock -n 200 || { echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Another instance of warp_monitor is already running. Exiting." | tee -a "$LOG_FILE"; exit 1; }
+    flock -n 200 || { echo "[$(date '+%Y-%m-%d %H:%M:%S')] - 已有warp_monitor进程运行中。" | tee -a "$LOG_FILE"; exit 1; }
     main
 ) 200>"$LOCK_FILE"
