@@ -90,11 +90,7 @@ setup_cron_job() {
         local human_readable_schedule=""
         case "$schedule" in
             "0 * * * *") human_readable_schedule="每小时执行一次 (在第0分钟)" ;;
-            "*/5 * * * *") human_readable_schedule="每5分钟执行一次" ;;
-            "*/10 * * * *") human_readable_schedule="每10分钟执行一次" ;;
-            "*/15 * * * *") human_readable_schedule="每15分钟执行一次" ;;
             "*/30 * * * *") human_readable_schedule="每30分钟执行一次" ;;
-            "* * * * *") human_readable_schedule="每分钟执行一次" ;;
             *) human_readable_schedule="按自定义计划 '${schedule}' 执行" ;;
         esac
         log_and_echo "   - 已有设定: $human_readable_schedule"
