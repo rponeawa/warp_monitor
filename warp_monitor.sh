@@ -7,7 +7,7 @@ SCRIPT_PATH=$(realpath "$0")
 LOCK_FILE="/var/run/warp_monitor.lock"
 
 if [ "$(id -u)" -ne 0 ]; then
-   echo "错误: 此脚本必须以 root 权限运行才能管理 logrotate 和 crontab。"
+   echo "错误: 此脚本必须以 root 权限运行。"
    exit 1
 fi
 
@@ -15,7 +15,8 @@ if [ -f /etc/alpine-release ]; then
     if ! echo "test" | grep -P "test" > /dev/null 2>&1; then
         echo "[INFO] 检测到 Alpine Linux 且缺少 GNU grep, 正在尝试自动安装..." | tee -a "$LOG_FILE"
         if command -v apk > /dev/null; then
-            apk update && apk add grep
+            apk update
+            apk add grep
             if ! echo "test" | grep -P "test" > /dev/null 2>&1; then
                 echo "[ERROR] 自动安装 GNU grep 失败, 脚本无法继续。请手动执行 'apk add grep'。" | tee -a "$LOG_FILE"
                 exit 1
@@ -26,6 +27,35 @@ if [ -f /etc/alpine-release ]; then
             echo "[ERROR] 在 Alpine 系统上未找到 'apk' 命令, 无法安装依赖。" | tee -a "$LOG_FILE"
             exit 1
         fi
+    fi
+fi
+
+if ! command -v flock >/dev/null 2>&1; then
+    echo "[INFO] flock 命令未找到, 正在尝试静默安装..." | tee -a "$LOG_FILE"
+    INSTALL_CMD=""
+    if command -v apt-get >/dev/null; then
+        apt-get update >/dev/null
+        INSTALL_CMD="apt-get install -y util-linux"
+    elif command -v dnf >/dev/null; then
+        INSTALL_CMD="dnf install -y util-linux"
+    elif command -v yum >/dev/null; then
+        INSTALL_CMD="yum install -y util-linux"
+    elif command -v pacman >/dev/null; then
+        INSTALL_CMD="pacman -S --noconfirm util-linux"
+    elif command -v apk >/dev/null; then
+        INSTALL_CMD="apk add util-linux"
+    fi
+    if [ -n "$INSTALL_CMD" ]; then
+        $INSTALL_CMD >/dev/null 2>&1
+        if ! command -v flock >/dev/null 2>&1; then
+            echo "[ERROR] 自动安装 util-linux (flock) 失败, 脚本无法保证安全运行, 即将退出。" | tee -a "$LOG_FILE"
+            exit 1
+        else
+            echo "[SUCCESS] 成功静默安装 util-linux, flock 命令已可用。" | tee -a "$LOG_FILE"
+        fi
+    else
+        echo "[ERROR] 未知的包管理器, 无法自动安装 util-linux。脚本无法保证安全运行, 即将退出。" | tee -a "$LOG_FILE"
+        exit 1
     fi
 fi
 
@@ -79,10 +109,8 @@ EOF
 setup_cron_job() {
     local cron_comment="# WARP_MONITOR_CRON"
     local cron_job="0 * * * * timeout 20m ${SCRIPT_PATH} ${cron_comment}"
-
     log_and_echo "------------------------------------------------------------------------"
     log_and_echo " 定时任务配置检查:"
-
     if crontab -l 2>/dev/null | grep -qF "$cron_comment"; then
         log_and_echo "   [INFO] 定时监控任务已存在, 跳过设置。"
         local existing_job=$(crontab -l | grep -F "$cron_comment")
@@ -90,7 +118,11 @@ setup_cron_job() {
         local human_readable_schedule=""
         case "$schedule" in
             "0 * * * *") human_readable_schedule="每小时执行一次 (在第0分钟)" ;;
+            "*/5 * * * *") human_readable_schedule="每5分钟执行一次" ;;
+            "*/10 * * * *") human_readable_schedule="每10分钟执行一次" ;;
+            "*/15 * * * *") human_readable_schedule="每15分钟执行一次" ;;
             "*/30 * * * *") human_readable_schedule="每30分钟执行一次" ;;
+            "* * * * *") human_readable_schedule="每分钟执行一次" ;;
             *) human_readable_schedule="按自定义计划 '${schedule}' 执行" ;;
         esac
         log_and_echo "   - 已有设定: $human_readable_schedule"
@@ -102,11 +134,7 @@ setup_cron_job() {
     else
         log_and_echo "   [INFO] 定时监控任务不存在, 正在添加..."
         (crontab -l 2>/dev/null; echo "$cron_job") | crontab -
-        if [ $? -eq 0 ]; then
-            log_and_echo "   [SUCCESS] 成功添加定时任务 (带20分钟超时保护), 脚本将每小时自动运行。"
-        else
-            log_and_echo "   [ERROR] 添加定时任务失败。"
-        fi
+        if [ $? -eq 0 ]; then log_and_echo "   [SUCCESS] 成功添加定时任务 (带20分钟超时保护), 脚本将每小时自动运行。"; else log_and_echo "   [ERROR] 添加定时任务失败。"; fi
     fi
 }
 
