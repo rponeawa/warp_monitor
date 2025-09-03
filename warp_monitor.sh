@@ -2,7 +2,7 @@
 
 LOG_FILE="/var/log/warp_monitor.log"
 LOGROTATE_CONF="/etc/logrotate.d/warp_monitor"
-MAX_RETRIES=10
+MAX_RETRIES=2
 SCRIPT_PATH=$(realpath "$0")
 LOCK_FILE="/var/run/warp_monitor.lock"
 
