@@ -1,4 +1,4 @@
-[![许可证: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![许可证: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) ![Badge](https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2FMichaol%2Fwarp_monitor&label=&icon=github&color=%23198754&message=&style=flat&tz=Asia%2FShanghai)
 
 # WARP 状态监控与自动修复脚本
 
