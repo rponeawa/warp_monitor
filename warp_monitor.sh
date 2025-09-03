@@ -176,6 +176,7 @@ check_status() {
         if grep -q '^Table' /etc/wireguard/warp.conf; then WORK_MODE="非全局"; extra_opts="--interface warp"; else WORK_MODE="全局"; fi
         RECONNECT_CMD="/usr/bin/warp n"
     fi
+    expected_stack="仅 IPv4 (IPv4-Only)"
     if [[ -n "$extra_opts" || "$WORK_MODE" == "全局" ]]; then
         IPV4=$(get_warp_ip_details 4 "$extra_opts"); IPV6=$(get_warp_ip_details 6 "$extra_opts")
     fi
